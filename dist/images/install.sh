@@ -8,6 +8,7 @@ DEL_NON_HOST_NET_POD=${DEL_NON_HOST_NET_POD:-true}
 IPV6=${IPV6:-false}
 DUAL_STACK=${DUAL_STACK:-false}
 ENABLE_SSL=${ENABLE_SSL:-false}
+KUBE_OVN_TLS_ROTATION_INTERVAL=${KUBE_OVN_TLS_ROTATION_INTERVAL:-24h}
 ENABLE_VLAN=${ENABLE_VLAN:-false}
 CHECK_GATEWAY=${CHECK_GATEWAY:-true}
 LOGICAL_GATEWAY=${LOGICAL_GATEWAY:-false}
@@ -8274,8 +8275,8 @@ spec:
           env:
             - name: ENABLE_SSL
               value: "$ENABLE_SSL"
-            - name: ENABLE_KUBE_OVN_TLS_ROTATION
-              value: "$ENABLE_SSL"
+            - name: KUBE_OVN_TLS_ROTATION_INTERVAL
+              value: "$KUBE_OVN_TLS_ROTATION_INTERVAL"
             - name: POD_NAME
               valueFrom:
                 fieldRef:

@@ -61,6 +61,39 @@ func TestReconcileKubeOVNTLSRotatesExpiredSecret(t *testing.T) {
 	}
 }
 
+func TestKubeOVNTLSRotationInterval(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		want    time.Duration
+		wantErr bool
+	}{
+		{name: "empty uses default", value: "", want: kubeOVNTLSDefaultRotationInterval},
+		{name: "zero disables rotation", value: "0", want: 0},
+		{name: "custom interval", value: "12h", want: 12 * time.Hour},
+		{name: "invalid interval", value: "bad", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("KUBE_OVN_TLS_ROTATION_INTERVAL", tt.value)
+			got, err := kubeOVNTLSRotationInterval()
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("kubeOVNTLSRotationInterval returned nil error, want error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("kubeOVNTLSRotationInterval returned error: %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("interval = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func testKubeOVNTLSSecret(namespace string, data map[string][]byte, annotations map[string]string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{

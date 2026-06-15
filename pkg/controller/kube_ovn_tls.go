@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -25,17 +26,25 @@ import (
 )
 
 const (
-	kubeOVNTLSSecretName        = "kube-ovn-tls"
-	kubeOVNTLSReconcileInterval = 24 * time.Hour
-	kubeOVNTLSCADuration        = 10 * 365 * 24 * time.Hour
-	kubeOVNTLSCertDuration      = 10 * 365 * 24 * time.Hour
-	kubeOVNTLSCommonName        = "ovn"
+	kubeOVNTLSSecretName              = "kube-ovn-tls"
+	kubeOVNTLSDefaultRotationInterval = 24 * time.Hour
+	kubeOVNTLSCADuration              = 10 * 365 * 24 * time.Hour
+	kubeOVNTLSCertDuration            = 10 * 365 * 24 * time.Hour
+	kubeOVNTLSCommonName              = "ovn"
 
 	kubeOVNTLSCertHashAnnotation = "kube-ovn.io/kube-ovn-tls-cert-hash"
 )
 
 func (c *Controller) startKubeOVNTLSManager(ctx context.Context) {
-	if os.Getenv(util.EnvSSLEnabled) != "true" || os.Getenv(util.EnvKubeOVNTLSRotation) != "true" {
+	if os.Getenv(util.EnvSSLEnabled) != "true" {
+		return
+	}
+	interval, err := kubeOVNTLSRotationInterval()
+	if err != nil {
+		klog.Errorf("failed to parse kube-ovn TLS rotation interval: %v", err)
+		return
+	}
+	if interval <= 0 {
 		return
 	}
 
@@ -43,7 +52,19 @@ func (c *Controller) startKubeOVNTLSManager(ctx context.Context) {
 		if err := c.reconcileKubeOVNTLS(ctx); err != nil {
 			klog.Errorf("failed to reconcile kube-ovn TLS secret: %v", err)
 		}
-	}, kubeOVNTLSReconcileInterval)
+	}, interval)
+}
+
+func kubeOVNTLSRotationInterval() (time.Duration, error) {
+	value := strings.TrimSpace(os.Getenv(util.EnvKubeOVNTLSRotationInterval))
+	if value == "" {
+		return kubeOVNTLSDefaultRotationInterval, nil
+	}
+	interval, err := time.ParseDuration(value)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s=%q: %w", util.EnvKubeOVNTLSRotationInterval, value, err)
+	}
+	return interval, nil
 }
 
 func (c *Controller) reconcileKubeOVNTLS(ctx context.Context) error {

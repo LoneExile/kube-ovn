@@ -167,8 +167,8 @@ spec:
           env:
             - name: ENABLE_SSL
               value: "{{ .Values.networking.ENABLE_SSL }}"
-            - name: ENABLE_KUBE_OVN_TLS_ROTATION
-              value: "{{- if and .Values.networking.ENABLE_SSL (include "kubeovn.renderControlPlane" .) }}true{{- else }}false{{- end }}"
+            - name: KUBE_OVN_TLS_ROTATION_INTERVAL
+              value: "{{ .Values.networking.KUBE_OVN_TLS_ROTATION_INTERVAL }}"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
