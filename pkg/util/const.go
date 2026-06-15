@@ -380,8 +380,9 @@ const (
 	EnvHostIP       = "HOST_IP"
 	EnvHostIPs      = "HOST_IPS"
 
-	EnvSSLEnabled  = "ENABLE_SSL"
-	EnvGatewayName = "GATEWAY_NAME"
+	EnvSSLEnabled         = "ENABLE_SSL"
+	EnvKubeOVNTLSRotation = "ENABLE_KUBE_OVN_TLS_ROTATION"
+	EnvGatewayName        = "GATEWAY_NAME"
 )
 
 const (

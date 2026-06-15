@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -20,6 +21,7 @@ const (
 	CmdWebhook          = "kube-ovn-webhook"
 	CmdOvnLeaderChecker = "kube-ovn-leader-checker"
 	CmdOvnICController  = "kube-ovn-ic-controller"
+	CmdKubeOVNTLSWatch  = "kube-ovn-tls-watcher"
 )
 
 func main() {
@@ -42,6 +44,8 @@ func main() {
 		ovn_leader_checker.CmdMain()
 	case CmdOvnICController:
 		ovn_ic_controller.CmdMain()
+	case CmdKubeOVNTLSWatch:
+		util.RunKubeOVNTLSPID1Watcher(context.Background())
 	default:
 		util.LogFatalAndExit(nil, "%s is an unknown command", cmd)
 	}

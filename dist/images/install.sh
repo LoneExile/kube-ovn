@@ -7217,6 +7217,7 @@ rules:
     verbs:
     - get
     - create
+    - update
   - apiGroups:
     - certificates.k8s.io
     resourceNames:
@@ -8272,6 +8273,8 @@ spec:
                 - NET_RAW
           env:
             - name: ENABLE_SSL
+              value: "$ENABLE_SSL"
+            - name: ENABLE_KUBE_OVN_TLS_ROTATION
               value: "$ENABLE_SSL"
             - name: POD_NAME
               valueFrom:

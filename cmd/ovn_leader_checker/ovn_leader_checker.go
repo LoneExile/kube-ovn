@@ -1,6 +1,8 @@
 package ovn_leader_checker
 
 import (
+	"context"
+
 	"github.com/kubeovn/kube-ovn/pkg/ovn_leader_checker"
 	"github.com/kubeovn/kube-ovn/pkg/util"
 )
@@ -13,5 +15,6 @@ func CmdMain() {
 	if err = ovn_leader_checker.KubeClientInit(cfg); err != nil {
 		util.LogFatalAndExit(err, "failed to initialize kube client")
 	}
+	util.StartKubeOVNTLSExitWatcher(context.Background())
 	ovn_leader_checker.StartOvnLeaderCheck(cfg)
 }
