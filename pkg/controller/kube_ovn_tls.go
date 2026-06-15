@@ -9,6 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -26,7 +27,7 @@ import (
 )
 
 const (
-	kubeOVNTLSSecretName              = "kube-ovn-tls"
+	kubeOVNTLSSecretName              = "kube-ovn-tls" // #nosec G101 -- Kubernetes Secret resource name, not a credential.
 	kubeOVNTLSDefaultRotationInterval = 24 * time.Hour
 	kubeOVNTLSCADuration              = 10 * 365 * 24 * time.Hour
 	kubeOVNTLSCertDuration            = 10 * 365 * 24 * time.Hour
@@ -135,7 +136,7 @@ func kubeOVNTLSNeedsRenewal(now time.Time, data map[string][]byte) (bool, error)
 func parseKubeOVNTLSCert(data map[string][]byte) (*x509.Certificate, error) {
 	block, _ := pem.Decode(data["cert"])
 	if block == nil || block.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("kube-ovn-tls cert must be a PEM certificate")
+		return nil, errors.New("kube-ovn-tls cert must be a PEM certificate")
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {

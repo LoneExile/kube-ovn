@@ -45,19 +45,20 @@ func terminatePID1() {
 	}
 
 	timer := time.NewTimer(30 * time.Second)
-	defer timer.Stop()
 	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
 			if err := syscall.Kill(1, 0); err != nil {
+				timer.Stop()
+				ticker.Stop()
 				os.Exit(0)
 			}
 		case <-timer.C:
 			klog.Warning("pid 1 did not exit after SIGTERM, sending SIGKILL")
 			_ = syscall.Kill(1, syscall.SIGKILL)
+			ticker.Stop()
 			os.Exit(0)
 		}
 	}
@@ -69,7 +70,7 @@ func WatchKubeOVNTLSFiles(ctx context.Context, interval time.Duration, onChange 
 		klog.Infof("waiting for kube-ovn TLS files: %v", err)
 	}
 
-	go wait.UntilWithContext(ctx, func(ctx context.Context) {
+	go wait.UntilWithContext(ctx, func(_ context.Context) {
 		currentHash, err := hashKubeOVNTLSFiles()
 		if err != nil {
 			klog.Infof("waiting for kube-ovn TLS files: %v", err)
