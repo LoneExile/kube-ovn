@@ -13,16 +13,16 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const kubeOVNTLSWatchInterval = 30 * time.Second
+const kubeOVNTLSCheckInterval = 30 * time.Second
 
 var kubeOVNTLSFiles = []string{SslCACert, SslCertPath, SslKeyPath}
 var kubeOVNTLSProbeHashFile = "/tmp/kube-ovn-tls.hash"
 
-func StartKubeOVNTLSExitWatcher(ctx context.Context) {
+func StartKubeOVNTLSExitCheck(ctx context.Context) {
 	if os.Getenv(EnvSSLEnabled) != "true" {
 		return
 	}
-	WatchKubeOVNTLSFiles(ctx, kubeOVNTLSWatchInterval, func() {
+	CheckKubeOVNTLSFilesPeriodically(ctx, kubeOVNTLSCheckInterval, func() {
 		klog.Info("kube-ovn TLS files changed, exiting for restart")
 		os.Exit(0)
 	})
@@ -49,7 +49,7 @@ func CheckKubeOVNTLSFilesChanged() error {
 	return nil
 }
 
-func WatchKubeOVNTLSFiles(ctx context.Context, interval time.Duration, onChange func()) {
+func CheckKubeOVNTLSFilesPeriodically(ctx context.Context, interval time.Duration, onChange func()) {
 	lastHash, err := hashKubeOVNTLSFiles()
 	if err != nil {
 		klog.Infof("waiting for kube-ovn TLS files: %v", err)

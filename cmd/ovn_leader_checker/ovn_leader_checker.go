@@ -15,6 +15,6 @@ func CmdMain() {
 	if err = ovn_leader_checker.KubeClientInit(cfg); err != nil {
 		util.LogFatalAndExit(err, "failed to initialize kube client")
 	}
-	util.StartKubeOVNTLSExitWatcher(context.Background())
+	util.StartKubeOVNTLSExitCheck(context.Background())
 	ovn_leader_checker.StartOvnLeaderCheck(cfg)
 }

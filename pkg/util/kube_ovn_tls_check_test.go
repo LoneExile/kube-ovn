@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestWatchKubeOVNTLSFilesCallsOnChange(t *testing.T) {
+func TestCheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
 	dir := t.TempDir()
 	oldFiles := kubeOVNTLSFiles
 	kubeOVNTLSFiles = []string{
@@ -26,7 +26,7 @@ func TestWatchKubeOVNTLSFilesCallsOnChange(t *testing.T) {
 	}
 
 	changed := make(chan struct{}, 1)
-	WatchKubeOVNTLSFiles(t.Context(), 10*time.Millisecond, func() {
+	CheckKubeOVNTLSFilesPeriodically(t.Context(), 10*time.Millisecond, func() {
 		changed <- struct{}{}
 	})
 
@@ -37,7 +37,7 @@ func TestWatchKubeOVNTLSFilesCallsOnChange(t *testing.T) {
 	select {
 	case <-changed:
 	case <-time.After(time.Second):
-		t.Fatal("watcher did not call onChange after TLS file update")
+		t.Fatal("TLS check did not call onChange after TLS file update")
 	}
 }
 

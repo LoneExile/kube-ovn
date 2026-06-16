@@ -62,7 +62,7 @@ func CmdMain() {
 
 	ctrl.SetLogger(klog.NewKlogr())
 	ctx := signals.SetupSignalHandler()
-	util.StartKubeOVNTLSExitWatcher(ctx)
+	util.StartKubeOVNTLSExitCheck(ctx)
 	go func() {
 		metricsAddrs := util.GetDefaultListenAddr()
 		servePprofInMetricsServer := config.EnableMetrics && slices.Contains(metricsAddrs, "0.0.0.0")

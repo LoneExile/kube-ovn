@@ -39,7 +39,7 @@ func CmdMain() {
 
 	ctrl.SetLogger(klog.NewKlogr())
 	ctx := signals.SetupSignalHandler()
-	util.StartKubeOVNTLSExitWatcher(ctx)
+	util.StartKubeOVNTLSExitCheck(ctx)
 
 	metricsAddrs := util.GetDefaultListenAddr()
 	if config.EnableMetrics {
