@@ -36,7 +36,7 @@ func CmdMain() {
 
 	ctrl.SetLogger(klog.NewKlogr())
 	ctx := signals.SetupSignalHandler()
-	util.StartKubeOVNTLSExitCheck(ctx)
+	util.StartKubeOVNTLSReloadExitLoop(ctx)
 	if config.Mode == "server" {
 		if config.EnableMetrics {
 			go func() {

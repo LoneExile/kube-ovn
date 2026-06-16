@@ -81,7 +81,7 @@ func main() {
 
 	ctrl.SetLogger(klog.NewKlogr())
 	ctx := signals.SetupSignalHandler()
-	util.StartKubeOVNTLSExitCheck(ctx)
+	util.StartKubeOVNTLSReloadExitLoop(ctx)
 	stopCh := ctx.Done()
 	podInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(config.KubeClient, 0,
 		kubeinformers.WithTransform(util.TrimManagedFields),

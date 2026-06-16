@@ -7902,7 +7902,7 @@ spec:
               command:
                 - bash
                 - -c
-                - "/kube-ovn/kube-ovn-tls-check && /kube-ovn/ovs-healthcheck.sh"
+                - "/kube-ovn/kube-ovn-tls-reload-check && /kube-ovn/ovs-healthcheck.sh"
             initialDelaySeconds: 60
             periodSeconds: 5
             failureThreshold: 5
@@ -8058,7 +8058,7 @@ spec:
               command:
                 - bash
                 - -c
-                - "/kube-ovn/kube-ovn-tls-check && /kube-ovn/ovs-healthcheck.sh"
+                - "/kube-ovn/kube-ovn-tls-reload-check && /kube-ovn/ovs-healthcheck.sh"
             initialDelaySeconds: 60
             periodSeconds: 5
             failureThreshold: 5

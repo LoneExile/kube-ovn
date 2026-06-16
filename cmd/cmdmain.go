@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	CmdMonitor          = "kube-ovn-monitor"
-	CmdSpeaker          = "kube-ovn-speaker"
-	CmdWebhook          = "kube-ovn-webhook"
-	CmdOvnLeaderChecker = "kube-ovn-leader-checker"
-	CmdOvnICController  = "kube-ovn-ic-controller"
-	CmdKubeOVNTLSCheck  = "kube-ovn-tls-check"
+	CmdMonitor               = "kube-ovn-monitor"
+	CmdSpeaker               = "kube-ovn-speaker"
+	CmdWebhook               = "kube-ovn-webhook"
+	CmdOvnLeaderChecker      = "kube-ovn-leader-checker"
+	CmdOvnICController       = "kube-ovn-ic-controller"
+	CmdKubeOVNTLSReloadCheck = "kube-ovn-tls-reload-check"
 )
 
 func main() {
@@ -43,9 +43,9 @@ func main() {
 		ovn_leader_checker.CmdMain()
 	case CmdOvnICController:
 		ovn_ic_controller.CmdMain()
-	case CmdKubeOVNTLSCheck:
-		if err := util.CheckKubeOVNTLSFilesChanged(); err != nil {
-			util.LogFatalAndExit(err, "kube-ovn TLS files changed")
+	case CmdKubeOVNTLSReloadCheck:
+		if err := util.CheckKubeOVNTLSReloadRequired(); err != nil {
+			util.LogFatalAndExit(err, "kube-ovn TLS reload required")
 		}
 	default:
 		util.LogFatalAndExit(nil, "%s is an unknown command", cmd)

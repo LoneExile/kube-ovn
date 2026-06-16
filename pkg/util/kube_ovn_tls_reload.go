@@ -13,22 +13,26 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const kubeOVNTLSCheckInterval = 30 * time.Second
+const kubeOVNTLSReloadCheckInterval = 30 * time.Second
 
 var kubeOVNTLSFiles = []string{SslCACert, SslCertPath, SslKeyPath}
 var kubeOVNTLSProbeHashFile = "/tmp/kube-ovn-tls.hash"
 
-func StartKubeOVNTLSExitCheck(ctx context.Context) {
+// StartKubeOVNTLSReloadExitLoop is used by Go-based components. They can watch
+// the mounted TLS files in-process and exit themselves so kubelet restarts them.
+func StartKubeOVNTLSReloadExitLoop(ctx context.Context) {
 	if os.Getenv(EnvSSLEnabled) != "true" {
 		return
 	}
-	CheckKubeOVNTLSFilesPeriodically(ctx, kubeOVNTLSCheckInterval, func() {
+	checkKubeOVNTLSFilesPeriodically(ctx, kubeOVNTLSReloadCheckInterval, func() {
 		klog.Info("kube-ovn TLS files changed, exiting for restart")
 		os.Exit(0)
 	})
 }
 
-func CheckKubeOVNTLSFilesChanged() error {
+// CheckKubeOVNTLSReloadRequired is used by script-based OVS containers through
+// livenessProbe. Those containers have no kube-ovn Go daemon to run the loop.
+func CheckKubeOVNTLSReloadRequired() error {
 	if os.Getenv(EnvSSLEnabled) != "true" {
 		return nil
 	}
@@ -44,12 +48,12 @@ func CheckKubeOVNTLSFilesChanged() error {
 		return fmt.Errorf("read %s: %w", kubeOVNTLSProbeHashFile, err)
 	}
 	if string(data) != hash {
-		return errors.New("kube-ovn TLS files changed")
+		return errors.New("kube-ovn TLS reload required")
 	}
 	return nil
 }
 
-func CheckKubeOVNTLSFilesPeriodically(ctx context.Context, interval time.Duration, onChange func()) {
+func checkKubeOVNTLSFilesPeriodically(ctx context.Context, interval time.Duration, onChange func()) {
 	lastHash, err := hashKubeOVNTLSFiles()
 	if err != nil {
 		klog.Infof("waiting for kube-ovn TLS files: %v", err)

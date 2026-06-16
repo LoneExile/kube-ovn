@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestCheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
+func TestcheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
 	dir := t.TempDir()
 	oldFiles := kubeOVNTLSFiles
 	kubeOVNTLSFiles = []string{
@@ -26,7 +26,7 @@ func TestCheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
 	}
 
 	changed := make(chan struct{}, 1)
-	CheckKubeOVNTLSFilesPeriodically(t.Context(), 10*time.Millisecond, func() {
+	checkKubeOVNTLSFilesPeriodically(t.Context(), 10*time.Millisecond, func() {
 		changed <- struct{}{}
 	})
 
@@ -37,11 +37,11 @@ func TestCheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
 	select {
 	case <-changed:
 	case <-time.After(time.Second):
-		t.Fatal("TLS check did not call onChange after TLS file update")
+		t.Fatal("TLS reload loop did not call onChange after TLS file update")
 	}
 }
 
-func TestCheckKubeOVNTLSFilesChanged(t *testing.T) {
+func TestCheckKubeOVNTLSReloadRequired(t *testing.T) {
 	t.Setenv(EnvSSLEnabled, "true")
 
 	dir := t.TempDir()
@@ -64,16 +64,16 @@ func TestCheckKubeOVNTLSFilesChanged(t *testing.T) {
 		}
 	}
 
-	if err := CheckKubeOVNTLSFilesChanged(); err != nil {
+	if err := CheckKubeOVNTLSReloadRequired(); err != nil {
 		t.Fatalf("initial check returned error: %v", err)
 	}
-	if err := CheckKubeOVNTLSFilesChanged(); err != nil {
+	if err := CheckKubeOVNTLSReloadRequired(); err != nil {
 		t.Fatalf("second check returned error: %v", err)
 	}
 	if err := os.WriteFile(kubeOVNTLSFiles[0], []byte("new"), 0o600); err != nil {
 		t.Fatalf("failed to update cacert: %v", err)
 	}
-	if err := CheckKubeOVNTLSFilesChanged(); err == nil {
+	if err := CheckKubeOVNTLSReloadRequired(); err == nil {
 		t.Fatal("check returned nil error after TLS file changed")
 	}
 }
