@@ -7901,7 +7901,8 @@ spec:
             exec:
               command:
                 - bash
-                - /kube-ovn/ovs-healthcheck.sh
+                - -c
+                - "/kube-ovn/kube-ovn-tls-watcher && /kube-ovn/ovs-healthcheck.sh"
             initialDelaySeconds: 60
             periodSeconds: 5
             failureThreshold: 5
@@ -8056,7 +8057,8 @@ spec:
             exec:
               command:
                 - bash
-                - /kube-ovn/ovs-healthcheck.sh
+                - -c
+                - "/kube-ovn/kube-ovn-tls-watcher && /kube-ovn/ovs-healthcheck.sh"
             initialDelaySeconds: 60
             periodSeconds: 5
             failureThreshold: 5

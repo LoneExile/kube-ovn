@@ -40,3 +40,40 @@ func TestWatchKubeOVNTLSFilesCallsOnChange(t *testing.T) {
 		t.Fatal("watcher did not call onChange after TLS file update")
 	}
 }
+
+func TestCheckKubeOVNTLSFilesChanged(t *testing.T) {
+	t.Setenv(EnvSSLEnabled, "true")
+
+	dir := t.TempDir()
+	oldFiles := kubeOVNTLSFiles
+	oldHashFile := kubeOVNTLSProbeHashFile
+	kubeOVNTLSFiles = []string{
+		filepath.Join(dir, "cacert"),
+		filepath.Join(dir, "cert"),
+		filepath.Join(dir, "key"),
+	}
+	kubeOVNTLSProbeHashFile = filepath.Join(dir, "tls.hash")
+	t.Cleanup(func() {
+		kubeOVNTLSFiles = oldFiles
+		kubeOVNTLSProbeHashFile = oldHashFile
+	})
+
+	for _, path := range kubeOVNTLSFiles {
+		if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
+			t.Fatalf("failed to write %s: %v", path, err)
+		}
+	}
+
+	if err := CheckKubeOVNTLSFilesChanged(); err != nil {
+		t.Fatalf("initial check returned error: %v", err)
+	}
+	if err := CheckKubeOVNTLSFilesChanged(); err != nil {
+		t.Fatalf("second check returned error: %v", err)
+	}
+	if err := os.WriteFile(kubeOVNTLSFiles[0], []byte("new"), 0o600); err != nil {
+		t.Fatalf("failed to update cacert: %v", err)
+	}
+	if err := CheckKubeOVNTLSFilesChanged(); err == nil {
+		t.Fatal("check returned nil error after TLS file changed")
+	}
+}

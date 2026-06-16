@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 
@@ -45,7 +44,9 @@ func main() {
 	case CmdOvnICController:
 		ovn_ic_controller.CmdMain()
 	case CmdKubeOVNTLSWatch:
-		util.RunKubeOVNTLSPID1Watcher(context.Background())
+		if err := util.CheckKubeOVNTLSFilesChanged(); err != nil {
+			util.LogFatalAndExit(err, "kube-ovn TLS files changed")
+		}
 	default:
 		util.LogFatalAndExit(nil, "%s is an unknown command", cmd)
 	}

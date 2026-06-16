@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
-	"syscall"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -16,6 +16,7 @@ import (
 const kubeOVNTLSWatchInterval = 30 * time.Second
 
 var kubeOVNTLSFiles = []string{SslCACert, SslCertPath, SslKeyPath}
+var kubeOVNTLSProbeHashFile = "/tmp/kube-ovn-tls.hash"
 
 func StartKubeOVNTLSExitWatcher(ctx context.Context) {
 	if os.Getenv(EnvSSLEnabled) != "true" {
@@ -27,41 +28,25 @@ func StartKubeOVNTLSExitWatcher(ctx context.Context) {
 	})
 }
 
-func RunKubeOVNTLSPID1Watcher(ctx context.Context) {
+func CheckKubeOVNTLSFilesChanged() error {
 	if os.Getenv(EnvSSLEnabled) != "true" {
-		return
+		return nil
 	}
-	WatchKubeOVNTLSFiles(ctx, kubeOVNTLSWatchInterval, func() {
-		klog.Info("kube-ovn TLS files changed, terminating pid 1 for restart")
-		terminatePID1()
-	})
-	<-ctx.Done()
-}
-
-func terminatePID1() {
-	if err := syscall.Kill(1, syscall.SIGTERM); err != nil {
-		klog.Errorf("failed to terminate pid 1: %v", err)
-		os.Exit(1)
+	hash, err := hashKubeOVNTLSFiles()
+	if err != nil {
+		return err
 	}
-
-	timer := time.NewTimer(30 * time.Second)
-	ticker := time.NewTicker(time.Second)
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := syscall.Kill(1, 0); err != nil {
-				timer.Stop()
-				ticker.Stop()
-				os.Exit(0)
-			}
-		case <-timer.C:
-			klog.Warning("pid 1 did not exit after SIGTERM, sending SIGKILL")
-			_ = syscall.Kill(1, syscall.SIGKILL)
-			ticker.Stop()
-			os.Exit(0)
-		}
+	data, err := os.ReadFile(kubeOVNTLSProbeHashFile)
+	if os.IsNotExist(err) {
+		return os.WriteFile(kubeOVNTLSProbeHashFile, []byte(hash), 0o600)
 	}
+	if err != nil {
+		return fmt.Errorf("read %s: %w", kubeOVNTLSProbeHashFile, err)
+	}
+	if string(data) != hash {
+		return errors.New("kube-ovn TLS files changed")
+	}
+	return nil
 }
 
 func WatchKubeOVNTLSFiles(ctx context.Context, interval time.Duration, onChange func()) {
