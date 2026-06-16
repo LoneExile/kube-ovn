@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,10 +25,8 @@ func TestWatchKubeOVNTLSFilesCallsOnChange(t *testing.T) {
 		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	changed := make(chan struct{}, 1)
-	WatchKubeOVNTLSFiles(ctx, 10*time.Millisecond, func() {
+	WatchKubeOVNTLSFiles(t.Context(), 10*time.Millisecond, func() {
 		changed <- struct{}{}
 	})
 
