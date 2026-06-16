@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestcheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
+func TestCheckKubeOVNTLSFilesPeriodicallyCallsOnChange(t *testing.T) {
 	dir := t.TempDir()
 	oldFiles := kubeOVNTLSFiles
 	kubeOVNTLSFiles = []string{
