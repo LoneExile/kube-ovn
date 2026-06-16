@@ -20,7 +20,7 @@ const (
 	CmdWebhook          = "kube-ovn-webhook"
 	CmdOvnLeaderChecker = "kube-ovn-leader-checker"
 	CmdOvnICController  = "kube-ovn-ic-controller"
-	CmdKubeOVNTLSWatch  = "kube-ovn-tls-watcher"
+	CmdKubeOVNTLSCheck  = "kube-ovn-tls-check"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		ovn_leader_checker.CmdMain()
 	case CmdOvnICController:
 		ovn_ic_controller.CmdMain()
-	case CmdKubeOVNTLSWatch:
+	case CmdKubeOVNTLSCheck:
 		if err := util.CheckKubeOVNTLSFilesChanged(); err != nil {
 			util.LogFatalAndExit(err, "kube-ovn TLS files changed")
 		}
