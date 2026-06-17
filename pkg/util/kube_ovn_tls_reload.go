@@ -15,8 +15,10 @@ import (
 
 const kubeOVNTLSReloadCheckInterval = 30 * time.Second
 
-var kubeOVNTLSFiles = []string{SslCACert, SslCertPath, SslKeyPath}
-var kubeOVNTLSProbeHashFile = "/tmp/kube-ovn-tls.hash"
+var (
+	kubeOVNTLSFiles         = []string{SslCACert, SslCertPath, SslKeyPath}
+	kubeOVNTLSProbeHashFile = "/tmp/kube-ovn-tls.hash"
+)
 
 // StartKubeOVNTLSReloadExitLoop is used by Go-based components. They can watch
 // the mounted TLS files in-process and exit themselves so kubelet restarts them.
