@@ -8,10 +8,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/hex"
-	"encoding/pem"
-	"errors"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -134,11 +131,7 @@ func kubeOVNTLSNeedsRenewal(now time.Time, data map[string][]byte) (bool, error)
 }
 
 func parseKubeOVNTLSCert(data map[string][]byte) (*x509.Certificate, error) {
-	block, _ := pem.Decode(data["cert"])
-	if block == nil || block.Type != "CERTIFICATE" {
-		return nil, errors.New("kube-ovn-tls cert must be a PEM certificate")
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := decodeCertificate(data["cert"])
 	if err != nil {
 		return nil, fmt.Errorf("parse kube-ovn-tls cert: %w", err)
 	}
@@ -150,7 +143,7 @@ func generateKubeOVNTLSData(now time.Time, caDuration, certDuration time.Duratio
 	if err != nil {
 		return nil, "", fmt.Errorf("generate kube-ovn-tls CA key: %w", err)
 	}
-	caSerial, err := randomSerialNumber()
+	caSerial, err := newCertificateSerialNumber()
 	if err != nil {
 		return nil, "", err
 	}
@@ -179,7 +172,7 @@ func generateKubeOVNTLSData(now time.Time, caDuration, certDuration time.Duratio
 	if err != nil {
 		return nil, "", fmt.Errorf("generate kube-ovn-tls key: %w", err)
 	}
-	serial, err := randomSerialNumber()
+	serial, err := newCertificateSerialNumber()
 	if err != nil {
 		return nil, "", err
 	}
@@ -200,9 +193,9 @@ func generateKubeOVNTLSData(now time.Time, caDuration, certDuration time.Duratio
 	}
 
 	data := map[string][]byte{
-		"cacert": encodeCertificate(caDER),
-		"cert":   encodeCertificate(certDER),
-		"key":    encodeRSAPrivateKey(key),
+		"cacert": encodeCertificatePEM(caDER),
+		"cert":   encodeCertificatePEM(certDER),
+		"key":    encodeRSAPrivateKeyPEM(key),
 	}
 	hash, err := kubeOVNTLSHash(data)
 	if err != nil {
@@ -225,22 +218,6 @@ func kubeOVNTLSHash(data map[string][]byte) (string, error) {
 		h.Write([]byte{0})
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-func randomSerialNumber() (*big.Int, error) {
-	serial, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
-	if err != nil {
-		return nil, fmt.Errorf("generate serial number: %w", err)
-	}
-	return serial, nil
-}
-
-func encodeCertificate(der []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-}
-
-func encodeRSAPrivateKey(key *rsa.PrivateKey) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 }
 
 func (c *Controller) updateKubeOVNTLSSecretData(ctx context.Context, data map[string][]byte, hash string) error {
